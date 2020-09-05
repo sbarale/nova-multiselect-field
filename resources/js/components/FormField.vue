@@ -20,9 +20,9 @@
           :close-on-select="field.max === 1 || !isMultiselect"
           :clear-on-select="false"
           :multiple="isMultiselect"
-          :max="field.max || null"
+          :max="max || field.max || null"
           :optionsLimit="field.optionsLimit || 1000"
-          :limitText="count => __('novaMultiselect.limitText', { count: String(count) })"
+          :limitText="count => __('novaMultiselect.limitText', { count: String(count || '') })"
           :selectLabel="__('novaMultiselect.selectLabel')"
           :selectGroupLabel="__('novaMultiselect.selectGroupLabel')"
           :selectedLabel="__('novaMultiselect.selectedLabel')"
@@ -44,9 +44,9 @@
 
         <!-- Reorder mode field -->
         <div v-if="reorderMode" class="form-input-bordered py-1">
-          <vue-draggable tag="ul" v-model="value" class="flex flex-col pl-0" style="list-style: none; margin-top: 5px;">
+          <vue-draggable tag="ul" v-model="value" class="flex flex-col pl-0" style="list-style: none; margin-top: 5px">
             <transition-group>
-              <li v-for="s in selected" :key="s" class="reorder__tag text-sm mb-1 px-2 py-1 text-white">
+              <li v-for="(s, i) in selected" :key="i" class="reorder__tag text-sm mb-1 px-2 py-1 text-white">
                 {{ s.label }}
               </li>
             </transition-group>
@@ -80,6 +80,8 @@ export default {
 
   data: () => ({
     reorderMode: false,
+    options: [],
+    max: void 0,
   }),
 
   mounted() {
@@ -88,12 +90,13 @@ export default {
     if (this.field.dependsOn) {
       this.options = [];
 
-      Nova.$on(`multiselect-${this.field.dependsOn}-input`, values => {
+      Nova.$on(`multiselect-${this.safeDependsOnAttribute}-input`, values => {
+        values = Array.isArray(values) ? values : [values]; // Handle singleSelect
+
         // Clear options
         this.options = [];
 
         const newOptions = [];
-        values = Array.isArray(values) ? values : [values]; // Handle singleSelect
         values.forEach(option => {
           if (!option) return;
 
@@ -117,6 +120,15 @@ export default {
         } else {
           this.value = this.value && !!hasValue(this.value.value) ? this.value : void 0;
         }
+
+        // Calculate max values
+        const dependsOnMax = this.field.dependsOnMax;
+        if (dependsOnMax) {
+          const maxValues = values.map(option => {
+            return option && (this.field.dependsOnMax[option.value] || null);
+          });
+          this.max = Math.max(...maxValues) || null;
+        }
       });
     }
 
@@ -133,6 +145,18 @@ export default {
   computed: {
     selected() {
       return this.value || [];
+    },
+
+    flexibleKey() {
+      const flexRegex = /^([a-zA-Z0-9]+)(?=__)/;
+      const match = this.field.attribute.match(flexRegex);
+      if (match && match[0] && match[0].length === 16) return match[0];
+    },
+
+    safeDependsOnAttribute() {
+      const flexibleKey = this.flexibleKey;
+      if (!flexibleKey) return this.field.dependsOn;
+      return `${flexibleKey}__${this.field.dependsOn}`;
     },
   },
 
