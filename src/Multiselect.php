@@ -100,6 +100,17 @@ class Multiselect extends Field
      * @param string $placeholder
      * @return \OptimistDigital\MultiselectField\Multiselect
      **/
+    public function hideSelected($status)
+    {
+        return $this->withMeta(['hideSelected' => $status]);
+    }
+
+    /**
+     * Sets the placeholder value displayed on the field.
+     *
+     * @param string $placeholder
+     * @return \OptimistDigital\MultiselectField\Multiselect
+     **/
     public function placeholder($placeholder)
     {
         return $this->withMeta(['placeholder' => $placeholder]);
