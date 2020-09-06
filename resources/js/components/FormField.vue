@@ -28,7 +28,7 @@
           :selectedLabel="__('novaMultiselect.selectedLabel')"
           :deselectLabel="__('novaMultiselect.deselectLabel')"
           :deselectGroupLabel="__('novaMultiselect.deselectGroupLabel')"
-          hideSelected="true"
+          :hideSelected="field.hideSelected"
         >
           <template slot="maxElements">
             {{ __('novaMultiselect.maxElements', { max: String(field.max || '') }) }}

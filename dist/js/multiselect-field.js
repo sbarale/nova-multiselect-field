@@ -32427,7 +32427,7 @@ var render = function() {
                       deselectGroupLabel: _vm.__(
                         "novaMultiselect.deselectGroupLabel"
                       ),
-                      hideSelected: "true"
+                      hideSelected: _vm.field.hideSelected
                     },
                     on: {
                       input: _vm.handleChange,
