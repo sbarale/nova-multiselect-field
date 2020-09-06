@@ -28,7 +28,7 @@
           :selectedLabel="__('novaMultiselect.selectedLabel')"
           :deselectLabel="__('novaMultiselect.deselectLabel')"
           :deselectGroupLabel="__('novaMultiselect.deselectGroupLabel')"
-          :hideSelected="field.hideSelected || true"
+          hideSelected="true"
         >
           <template slot="maxElements">
             {{ __('novaMultiselect.maxElements', { max: String(field.max || '') }) }}
@@ -100,7 +100,7 @@ export default {
         const newOptions = [];
         values.forEach(option => {
           if (!option) return;
-
+          if(!this.field.dependsOnOptions[option.value]) return;
           Object.keys(this.field.dependsOnOptions[option.value]).forEach(value => {
             // Only add unique
             if (newOptions.find(o => o.value === value)) return;
