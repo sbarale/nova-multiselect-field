@@ -167,6 +167,29 @@ class Multiselect extends Field
      * @param string $otherFieldName
      * @return \OptimistDigital\MultiselectField\Multiselect
      **/
+    public function excludeFrom($otherFieldName)
+    {
+        return $this->withMeta(['excludeFrom' => $otherFieldName]);
+    }
+
+    /**
+     * Set dependency options map as a keyed array of options.
+     *
+     * @param array $options
+     * @return \OptimistDigital\MultiselectField\Multiselect
+     **/
+    public function excludeFromOptions(array $options)
+    {
+        return $this->withMeta(['excludeFromOptions' => $options]);
+    }
+
+
+    /**
+     * Enable other-field dependency.
+     *
+     * @param string $otherFieldName
+     * @return \OptimistDigital\MultiselectField\Multiselect
+     **/
     public function dependsOn($otherFieldName)
     {
         return $this->withMeta(['dependsOn' => $otherFieldName]);

@@ -83,6 +83,7 @@ export default {
     reorderMode: false,
     options: [],
     max: void 0,
+    dependantIds: []
   }),
 
   mounted() {
@@ -93,14 +94,15 @@ export default {
 
       Nova.$on(`multiselect-${this.safeDependsOnAttribute}-input`, values => {
         values = Array.isArray(values) ? values : [values]; // Handle singleSelect
-
+        // Let's store the selection so we can use it on the excludes.
+        this.dependantIds = values;
         // Clear options
         this.options = [];
 
         const newOptions = [];
         values.forEach(option => {
           if (!option) return;
-          if(!this.field.dependsOnOptions[option.value]) return;
+          if (!this.field.dependsOnOptions[option.value]) return;
           Object.keys(this.field.dependsOnOptions[option.value]).forEach(value => {
             // Only add unique
             if (newOptions.find(o => o.value === value)) return;
@@ -133,6 +135,37 @@ export default {
       });
     }
 
+    if (this.field.excludeFrom) {
+
+      Nova.$on(`multiselect-${this.safeExcludeFromAttribute}-input`, excludables => {
+        // The values here should be removed from the options
+        excludables = Array.isArray(excludables) ? excludables : [excludables]; // Handle singleSelect
+
+        var newOptions = [];
+
+        this.dependantIds.forEach(dependant => {
+          Object.keys(this.field.dependsOnOptions[dependant.value]).forEach(value => {
+            // Only add unique
+            console.log(value);
+            if (excludables.find(o => o.value === value)) return;
+
+            let label = this.field.dependsOnOptions[dependant.value][value];
+            newOptions.push({ label, value });
+          });
+        });
+        this.options = newOptions;
+        // Remove values that no longer apply
+        const hasValue = value => excludables.find(v => v.value !== value);
+        if (this.isMultiselect) {
+          if (Array.isArray(this.value)) {
+            this.value = this.value.filter(v => !!v && !!hasValue(v.value));
+          }
+        } else {
+          this.value = this.value && !!hasValue(this.value.value) ? this.value : void 0;
+        }
+      });
+    }
+
     // Emit initial value
     this.$nextTick(() => {
       Nova.$emit(`multiselect-${this.field.attribute}-input`, this.value);
@@ -158,6 +191,12 @@ export default {
       const flexibleKey = this.flexibleKey;
       if (!flexibleKey) return this.field.dependsOn;
       return `${flexibleKey}__${this.field.dependsOn}`;
+    },
+
+    safeExcludeFromAttribute() {
+      const flexibleKey = this.flexibleKey;
+      if (!flexibleKey) return this.field.excludeFrom;
+      return `${flexibleKey}__${this.field.excludeFrom}`;
     },
   },
 

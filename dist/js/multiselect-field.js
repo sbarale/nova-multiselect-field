@@ -239,7 +239,8 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
     return {
       reorderMode: false,
       options: [],
-      max: void 0
+      max: void 0,
+      dependantIds: []
     };
   },
   mounted: function mounted() {
@@ -251,7 +252,9 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
       this.options = [];
       Nova.$on("multiselect-".concat(this.safeDependsOnAttribute, "-input"), function (values) {
         values = Array.isArray(values) ? values : [values]; // Handle singleSelect
-        // Clear options
+        // Let's store the selection so we can use it on the excludes.
+
+        _this.dependantIds = values; // Clear options
 
         _this.options = [];
         var newOptions = [];
@@ -298,6 +301,48 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
           _this.max = Math.max.apply(Math, _toConsumableArray(maxValues)) || null;
         }
       });
+    }
+
+    if (this.field.excludeFrom) {
+      Nova.$on("multiselect-".concat(this.safeExcludeFromAttribute, "-input"), function (excludables) {
+        // The values here should be removed from the options
+        excludables = Array.isArray(excludables) ? excludables : [excludables]; // Handle singleSelect
+
+        var newOptions = [];
+
+        _this.dependantIds.forEach(function (dependant) {
+          Object.keys(_this.field.dependsOnOptions[dependant.value]).forEach(function (value) {
+            // Only add unique
+            console.log(value);
+            if (excludables.find(function (o) {
+              return o.value === value;
+            })) return;
+            var label = _this.field.dependsOnOptions[dependant.value][value];
+            newOptions.push({
+              label: label,
+              value: value
+            });
+          });
+        });
+
+        _this.options = newOptions; // Remove values that no longer apply
+
+        var hasValue = function hasValue(value) {
+          return excludables.find(function (v) {
+            return v.value !== value;
+          });
+        };
+
+        if (_this.isMultiselect) {
+          if (Array.isArray(_this.value)) {
+            _this.value = _this.value.filter(function (v) {
+              return !!v && !!hasValue(v.value);
+            });
+          }
+        } else {
+          _this.value = _this.value && !!hasValue(_this.value.value) ? _this.value : void 0;
+        }
+      });
     } // Emit initial value
 
 
@@ -321,6 +366,11 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
       var flexibleKey = this.flexibleKey;
       if (!flexibleKey) return this.field.dependsOn;
       return "".concat(flexibleKey, "__").concat(this.field.dependsOn);
+    },
+    safeExcludeFromAttribute: function safeExcludeFromAttribute() {
+      var flexibleKey = this.flexibleKey;
+      if (!flexibleKey) return this.field.excludeFrom;
+      return "".concat(flexibleKey, "__").concat(this.field.excludeFrom);
     }
   },
   methods: {
@@ -35574,7 +35624,14 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
             });
           });
         });
-      }
+      } // if (this.field.excludeFrom) {
+      //   const valueGroups = Object.values(this.field.excludeFromOptions || {});
+      //   options = [];
+      //   valueGroups.forEach(values =>
+      //     Object.keys(values).forEach(value => options.splice( options.indexOf(value), 1 ))
+      //   );
+      // }
+
 
       if (this.isOptionGroups) {
         return this.field.options.map(function (optGroup) {

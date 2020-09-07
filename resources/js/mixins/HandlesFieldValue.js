@@ -39,6 +39,14 @@ export default {
         );
       }
 
+      // if (this.field.excludeFrom) {
+      //   const valueGroups = Object.values(this.field.excludeFromOptions || {});
+      //   options = [];
+      //   valueGroups.forEach(values =>
+      //     Object.keys(values).forEach(value => options.splice( options.indexOf(value), 1 ))
+      //   );
+      // }
+
       if (this.isOptionGroups) {
         return this.field.options
           .map(optGroup => optGroup.values.map(values => ({ ...values, group: optGroup.label })))
