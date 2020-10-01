@@ -137,6 +137,17 @@ class Multiselect extends Field
     }
 
     /**
+     * Set Open Direction Mode
+     *
+     * @param string $mode
+     * @return \OptimistDigital\MultiselectField\Multiselect
+     **/
+    public function openDirection($mode = '')
+    {
+        return $this->withMeta(['openDirection' => $mode]);
+    }
+
+    /**
      * Enables the field to be used as a single select.
      *
      * This forces the value saved to be a single value and not an array.
